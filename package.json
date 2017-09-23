@@ -1,26 +1,26 @@
 {
-	"name": "@dmail/prettiest",
-	"version": "0.0.1",
-	"licence": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/dmail/prettiest"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"bin": {
-		"prettiest": "./bin/prettiest"
-	},
-	"dependencies": {
-		"glob-gitignore": "^1.0.5",
-		"ignore": "^3.3.5"
-	},
-	"devDependencies": {
-		"@dmail/shared-config": "*",
-		"babel-eslint": "^8.0.0",
-		"eslint": "^3.19.0",
-		"eslint-plugin-import": "^2.7.0",
-		"prettier": "^1.7.0"
-	}
+  "name": "@dmail/prettiest",
+  "version": "0.0.1",
+  "licence": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmail/prettiest"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "prettiest": "./bin/prettiest.js"
+  },
+  "dependencies": {
+    "glob-gitignore": "^1.0.5",
+    "ignore": "^3.3.5"
+  },
+  "devDependencies": {
+    "@dmail/shared-config": "*",
+    "babel-eslint": "^8.0.0",
+    "eslint": "^3.19.0",
+    "eslint-plugin-import": "^2.7.0",
+    "prettier": "^1.7.0"
+  }
 }

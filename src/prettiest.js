@@ -9,26 +9,37 @@ const ignore = require("ignore")
 const { promisifyNodeCallback, promiseParallel } = require("./promise-helper.js")
 
 const getFileContent = promisifyNodeCallback(fs.readFile)
+const getFileContentAsString = path => getFileContent(path).then(String)
+const getOptionalFileContentAsString = path =>
+	getFileContentAsString(path).catch(e => (e && e.code === "ENOENT" ? "" : Promise.reject(e)))
 
 const findFilesForPrettier = (location = process.cwd()) => {
 	const absoluteLocation = path.resolve(process.cwd(), location)
-	return getFileContent(path.join(absoluteLocation, ".prettierignore"))
-		.then(String)
-		.then(ignoreRules =>
-			glob(["**/*.js", "**/*.json"], {
-				cwd: absoluteLocation,
-				ignore: ignore().add(ignoreRules)
-			})
-		)
+	return getOptionalFileContentAsString(
+		path.join(absoluteLocation, ".prettierignore")
+	).then(ignoreRules =>
+		glob(["**/*.js", "**/*.json"], {
+			cwd: absoluteLocation,
+			ignore: ignore()
+				.add("node_modules")
+				.add(ignoreRules)
+		})
+	)
 }
 
 const ensureFileIsPretty = file =>
-	Promise.all([getFileContent(file), prettier.resolveConfig(file)]).then(([source, options]) => {
+	Promise.all([
+		getFileContentAsString(file),
+		prettier.resolveConfig(file)
+	]).then(([source, options]) => {
+		const pretty = prettier.check(source, { ...options, filepath: file })
 		return {
 			file,
-			pretty: prettier.check(source, { ...options, filepath: file })
+			pretty
 		}
 	})
+
+ensureFileIsPretty(__filename)
 
 const ensureFolderIsPretty = (location = process.cwd()) =>
 	findFilesForPrettier(location).then(files => promiseParallel(files, ensureFileIsPretty))

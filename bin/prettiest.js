@@ -11,12 +11,12 @@ ensureFolderIsPretty(cwd)
 		const uglyFiles = report.filter(({ pretty }) => pretty === false).map(({ file }) => file)
 		if (uglyFiles.length) {
 			uglyFiles.forEach(file => {
-				warn(`${file} is ugly (does not respect .prettier.config.js)`)
+				warn(`${file} is ugly (does not respect prettier.config.js)`)
 			})
 			process.exit(1)
 		}
 
-		log(`everything is pretty :)`)
+		log(`you are the prettiest ;)`)
 		process.exit(0)
 	})
 	.catch(error =>
