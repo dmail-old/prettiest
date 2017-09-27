@@ -39,8 +39,6 @@ const ensureFileIsPretty = file =>
 		}
 	})
 
-ensureFileIsPretty(__filename)
-
 const ensureFolderIsPretty = (location = process.cwd()) =>
 	findFilesForPrettier(location).then(files => promiseParallel(files, ensureFileIsPretty))
 exports.ensureFolderIsPretty = ensureFolderIsPretty
