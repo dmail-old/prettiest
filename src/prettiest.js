@@ -32,7 +32,6 @@ const ensureFileIsPretty = file =>
 		getFileContentAsString(file),
 		prettier.resolveConfig(file)
 	]).then(([source, options]) => {
-		console.log(`prettier.check ${file}`)
 		const pretty = prettier.check(source, { ...options, filepath: file })
 		return {
 			file,
@@ -41,7 +40,6 @@ const ensureFileIsPretty = file =>
 	})
 
 const ensureFolderIsPretty = (location = process.cwd()) => {
-	console.log(`collect files in ${location}`)
 	return findFilesForPrettier(location).then(files => promiseParallel(files, ensureFileIsPretty))
 }
 exports.ensureFolderIsPretty = ensureFolderIsPretty
