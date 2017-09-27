@@ -32,6 +32,7 @@ const ensureFileIsPretty = file =>
 		getFileContentAsString(file),
 		prettier.resolveConfig(file)
 	]).then(([source, options]) => {
+		console.log(`prettier.check ${file}`)
 		const pretty = prettier.check(source, { ...options, filepath: file })
 		return {
 			file,
