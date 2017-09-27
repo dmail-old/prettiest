@@ -1,6 +1,6 @@
 {
 	"name": "@dmail/prettiest",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"licence": "MIT",
 	"repository": {
 		"type": "git",
@@ -13,14 +13,14 @@
 		"prettiest": "./bin/prettiest.js"
 	},
 	"dependencies": {
-		"glob-gitignore": "^1.0.5",
-		"ignore": "^3.3.5"
+		"glob-gitignore": "1.0.5",
+		"ignore": "3.3.5"
 	},
 	"devDependencies": {
 		"@dmail/shared-config": "*",
-		"babel-eslint": "^8.0.0",
-		"eslint": "^3.19.0",
-		"eslint-plugin-import": "^2.7.0",
-		"prettier": "^1.7.0"
+		"babel-eslint": "8.0.0",
+		"eslint": "3.19.0",
+		"eslint-plugin-import": "2.7.0",
+		"prettier": "1.7.0"
 	}
 }
