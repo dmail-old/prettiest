@@ -1,6 +1,6 @@
 {
 	"name": "@dmail/prettiest",
-	"version": "0.1.5",
+	"version": "0.2.0",
 	"licence": "MIT",
 	"repository": {
 		"type": "git",
@@ -10,7 +10,8 @@
 		"access": "public"
 	},
 	"bin": {
-		"prettiest": "./bin/prettiest.js"
+		"prettiest": "./bin/prettiest.js",
+		"prettiest-list": "./bin/prettiest-list.js"
 	},
 	"dependencies": {
 		"glob-gitignore": "1.0.5",

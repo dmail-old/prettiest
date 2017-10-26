@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const { ensureFolderIsPretty } = require("../index.js")
 
 const cwd = process.cwd()
