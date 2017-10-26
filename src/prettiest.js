@@ -26,6 +26,7 @@ const findFilesForPrettier = (location = process.cwd()) => {
 		})
 	)
 }
+exports.findFilesForPrettier = findFilesForPrettier
 
 const ensureFileIsPretty = file =>
 	Promise.all([
