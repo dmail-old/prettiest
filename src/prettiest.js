@@ -13,18 +13,29 @@ const getFileContentAsString = path => getFileContent(path).then(String)
 const getOptionalFileContentAsString = path =>
 	getFileContentAsString(path).catch(e => (e && e.code === "ENOENT" ? "" : Promise.reject(e)))
 
-const findFilesForPrettier = (location = process.cwd()) => {
-	const absoluteLocation = path.resolve(process.cwd(), location)
-	return getOptionalFileContentAsString(
-		path.join(absoluteLocation, ".prettierignore")
-	).then(ignoreRules =>
-		glob(["**/*.js", "**/*.json"], {
-			cwd: absoluteLocation,
-			ignore: ignore()
+const findFilesForPrettier = relativeLocation => {
+	const cwd = process.cwd()
+	let absoluteLocation
+	if (relativeLocation === undefined) {
+		absoluteLocation = cwd
+	} else if (relativeLocation === cwd) {
+		absoluteLocation = cwd
+	} else {
+		absoluteLocation = path.resolve(cwd, relativeLocation)
+	}
+
+	return getOptionalFileContentAsString(path.join(absoluteLocation, ".prettierignore"))
+		.then(ignoreRules =>
+			ignore()
 				.add("node_modules")
 				.add(ignoreRules)
-		})
-	)
+		)
+		.then(ignore =>
+			glob(["**/*.js", "**/*.json"], {
+				cwd: absoluteLocation,
+				ignore: ignore._rules.map(({ origin }) => origin)
+			})
+		)
 }
 exports.findFilesForPrettier = findFilesForPrettier
 
