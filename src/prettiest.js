@@ -31,7 +31,7 @@ const findFilesForPrettier = relativeLocation => {
 				.add(ignoreRules)
 		)
 		.then(ignore =>
-			glob(["**/*.js", "**/*.json"], {
+			glob(["**/*.js", "**/*.json", "**/*.md"], {
 				cwd: absoluteLocation,
 				ignore: ignore._rules.map(({ origin }) => origin)
 			})
