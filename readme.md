@@ -7,8 +7,8 @@ Command line util to ensure a folder of files respects prettier config.
 
 ## Command line
 
-- output list of files in current folder that should be pretty: `prettiest-list .`
-- check current folder contains only pretty files: `prettiest .`
+* output list of files in current folder that should be pretty: `prettiest-list .`
+* check current folder contains only pretty files: `prettiest .`
 
 ### findFilesForPrettier(pathToFolder)
 
@@ -27,9 +27,9 @@ findFilesForPrettier(process.cwd()).then((files) => console.log(files))
 const { ensureFolderIsPretty } = require("@dmail/prettiest")
 
 ensureFolderIsPretty(process.cwd()).then((report) => {
-  report.forEach(({ file, pretty }) => {
-    console.log(`${file} is pretty: ${pretty ? 'yes' : 'no'}`)
-  })
+	report.forEach(({ file, pretty }) => {
+		console.log(`${file} is pretty: ${pretty ? "yes" : "no"}`)
+	})
 })
 ```
 

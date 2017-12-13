@@ -9,11 +9,16 @@ const ignore = require("ignore")
 const { promisifyNodeCallback, promiseParallel } = require("./promise-helper.js")
 
 const getFileContent = promisifyNodeCallback(fs.readFile)
-const getFileContentAsString = path => getFileContent(path).then(String)
-const getOptionalFileContentAsString = path =>
-	getFileContentAsString(path).catch(e => (e && e.code === "ENOENT" ? "" : Promise.reject(e)))
 
-const findFilesForPrettier = relativeLocation => {
+const getFileContentAsString = (path) => getFileContent(path).then(String)
+
+const getOptionalFileContentAsString = (path) => {
+	return getFileContentAsString(path).catch((e) => {
+		return e && e.code === "ENOENT" ? "" : Promise.reject(e)
+	})
+}
+
+const findFilesForPrettier = (relativeLocation) => {
 	const cwd = process.cwd()
 	let absoluteLocation
 	if (relativeLocation === undefined) {
@@ -25,33 +30,33 @@ const findFilesForPrettier = relativeLocation => {
 	}
 
 	return getOptionalFileContentAsString(path.join(absoluteLocation, ".prettierignore"))
-		.then(ignoreRules =>
-			ignore()
+		.then((ignoreRules) => {
+			return ignore()
 				.add("node_modules")
 				.add(ignoreRules)
-		)
-		.then(ignore =>
-			glob(["**/*.js", "**/*.json", "**/*.md"], {
+		})
+		.then((ignore) => {
+			return glob(["**/*.js", "**/*.json", "**/*.md"], {
 				cwd: absoluteLocation,
-				ignore: ignore._rules.map(({ origin }) => origin)
+				ignore: ignore._rules.map(({ origin }) => origin),
 			})
-		)
+		})
 }
 exports.findFilesForPrettier = findFilesForPrettier
 
-const ensureFileIsPretty = file =>
-	Promise.all([
-		getFileContentAsString(file),
-		prettier.resolveConfig(file)
-	]).then(([source, options]) => {
-		const pretty = prettier.check(source, { ...options, filepath: file })
-		return {
-			file,
-			pretty
-		}
-	})
+const ensureFileIsPretty = (file) => {
+	return Promise.all([getFileContentAsString(file), prettier.resolveConfig(file)]).then(
+		([source, options]) => {
+			const pretty = prettier.check(source, { ...options, filepath: file })
+			return {
+				file,
+				pretty,
+			}
+		},
+	)
+}
 
 const ensureFolderIsPretty = (location = process.cwd()) => {
-	return findFilesForPrettier(location).then(files => promiseParallel(files, ensureFileIsPretty))
+	return findFilesForPrettier(location).then((files) => promiseParallel(files, ensureFileIsPretty))
 }
 exports.ensureFolderIsPretty = ensureFolderIsPretty

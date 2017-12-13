@@ -13,31 +13,31 @@ coverage`,
 	node_modules: {
 		"file.js": "",
 		module: {
-			"file.js": ""
-		}
+			"file.js": "",
+		},
 	},
 	coverage: {
-		"file.js": ""
+		"file.js": "",
 	},
 	dist: {
-		"file.js": ""
+		"file.js": "",
 	},
 	"index.js": "",
 	src: {
 		"file.js": "",
-		"file.json": ""
-	}
+		"file.json": "",
+	},
 }
 
 mock(abstractFileSystem)
 findFilesForPrettier()
-	.then(files => {
+	.then((files) => {
 		assert.deepEqual(files.sort(), ["index.js", "src/file.js", "src/file.json"].sort())
 		mock.restore()
 		console.log("passed")
 	})
-	.catch(e =>
+	.catch((e) =>
 		setTimeout(() => {
 			throw e
-		})
+		}),
 	)
