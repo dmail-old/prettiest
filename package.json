@@ -1,6 +1,6 @@
 {
 	"name": "@dmail/prettiest",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"licence": "MIT",
 	"repository": {
 		"type": "git",
@@ -18,12 +18,12 @@
 		"ignore": "3.3.6"
 	},
 	"devDependencies": {
-		"@dmail/shared-config": "1.1.1",
+		"@dmail/shared-config": "3.1.0",
 		"babel-eslint": "8.0.0",
 		"eslint": "3.19.0",
 		"eslint-plugin-import": "2.6.0",
 		"mock-fs": "4.4.2",
-		"prettier": "1.7.0"
+		"prettier": "1.9.1"
 	},
 	"scripts": {
 		"test": "node ./src/prettiest.test.js"
