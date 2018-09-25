@@ -1,1 +1,1 @@
-module.exports = require("@dmail/shared-config").config("eslint", {})
+module.exports = require("@dmail/project-eslint-config").config

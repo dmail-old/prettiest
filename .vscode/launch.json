@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch with node",
+      "type": "node",
+      "protocol": "inspector",
+      "preLaunchTask": "compile",
+      "request": "launch",
+      "program": "${file}",
+      "autoAttachChildProcesses": true,
+      "sourceMaps": true,
+      // "outFiles": ["${workspaceRoot}/build/**/*.js"],
+      // "outputCapture": "std",
+      // https://github.com/Microsoft/vscode-chrome-debug-core/commit/eb552d621f1f6fbebcfca5d2390020dc7d8877e0#diff-b4f13aa3c326d081dea7875f9c0fe84aR31
+      "skipFiles": [
+        "node_modules/**",
+        // https://github.com/Microsoft/vscode-react-native/issues/620
+        "<node_internals>/**/*.js"
+      ]
+      // "trace": true,
+    }
+  ]
+}

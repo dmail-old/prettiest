@@ -1,1 +1,1 @@
-Object.assign(exports, require("./src/prettiest.js"))
+export { getReport } from "./src/getReport.js"

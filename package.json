@@ -1,31 +1,45 @@
 {
-	"name": "@dmail/prettiest",
-	"version": "1.1.0",
-	"licence": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/dmail/prettiest"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"bin": {
-		"prettiest": "./bin/prettiest.js",
-		"prettiest-list": "./bin/prettiest-list.js"
-	},
-	"dependencies": {
-		"glob-gitignore": "1.0.5",
-		"ignore": "3.3.6"
-	},
-	"devDependencies": {
-		"@dmail/shared-config": "3.1.0",
-		"babel-eslint": "8.0.0",
-		"eslint": "3.19.0",
-		"eslint-plugin-import": "2.6.0",
-		"mock-fs": "4.4.2",
-		"prettier": "1.9.1"
-	},
-	"scripts": {
-		"test": "node ./src/prettiest.test.js"
-	}
+  "name": "@dmail/prettiest",
+  "version": "2.0.0",
+  "licence": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmail/prettiest"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "module": "index.js",
+  "files": [
+    "index.js",
+    "src",
+    "dist",
+    "bin"
+  ],
+  "bin": {
+    "prettiest": "./bin/prettiest.js"
+  },
+  "dependencies": {
+    "@dmail/project-structure": "github:dmail/project-structure"
+  },
+  "devDependencies": {
+    "@dmail/project-prettier-config": "github:dmail/project-prettier-config",
+    "prettier": "1.9.1",
+    "@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+    "eslint": "5.1.0",
+    "eslint-plugin-import": "2.6.0",
+    "babel-eslint": "9.0.0",
+    "rollup": "0.66.2",
+    "rollup-plugin-node-resolve": "3.4.0",
+    "rollup-plugin-babel": "4.0.3",
+    "@babel/core": "7.1.0",
+    "@babel/plugin-proposal-object-rest-spread": "7.0.0",
+    "@babel/plugin-transform-spread": "7.0.0"
+  },
+  "scripts": {
+    "test": "node ./src/getReport.test.js",
+    "code-compile": "node ./script/compile.js",
+    "compile": "npm run code-compile"
+  }
 }
