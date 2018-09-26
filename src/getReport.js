@@ -15,7 +15,7 @@ const getFileContentAsString = (location) =>
   })
 
 export const getReport = ({ root }) => {
-  return createRoot(root).then(({ forEachFileMatching }) => {
+  return createRoot({ root }).then(({ forEachFileMatching }) => {
     return forEachFileMatching(
       ({ prettify }) => prettify,
       ({ absoluteName }) => {
