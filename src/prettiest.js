@@ -1,17 +1,50 @@
 import { generateReport } from "./generateReport.js"
+import {
+  prettyStyle,
+  uglyStyle,
+  ignoredStyle,
+  prettyStyleWithIcon,
+  uglyStyleWithIcon,
+  ignoredStyleWithIcon,
+} from "./style.js"
 
-export const prettiest = async (options) => {
-  const report = await generateReport(options)
-  const uglyFiles = Object.keys(report).filter((file) => {
-    return report[file] === false
+export const prettiest = async ({ localRoot, ressources }) => {
+  const report = await generateReport({
+    localRoot,
+    ressources,
+    afterFormat: ({ ressource, pretty, ignored }) => {
+      if (ignored) {
+        console.log(`${ressource} -> ${ignoredStyleWithIcon("ignored")}`)
+        return
+      }
+      if (pretty) {
+        console.log(`${ressource} -> ${prettyStyleWithIcon("pretty")}`)
+        return
+      }
+      console.log(`${ressource} -> ${uglyStyleWithIcon("ugly")}`)
+    },
   })
 
-  if (uglyFiles.length) {
-    console.warn(`${uglyFiles.length} files are ugly (does not respect prettier.config.js)`)
-    console.warn(uglyFiles.join("\n"))
+  const prettyArray = ressources.filter((ressource) => {
+    return !report[ressource].ignored && report[ressource].pretty
+  })
+  const uglyArray = ressources.filter((ressource) => {
+    return !report[ressource].ignored && !report[ressource].pretty
+  })
+  const ignoredArray = ressources.filter((ressource) => {
+    return report[ressource].ignored
+  })
+
+  console.log(
+    `${ressources.length} files:
+- ${prettyStyle(`${prettyArray.length} pretty`)}
+- ${uglyStyle(`${uglyArray.length} ugly`)}
+- ${ignoredStyle(`${ignoredArray.length} ignored`)}`,
+  )
+
+  if (uglyArray.length) {
     process.exit(1)
   } else {
-    console.log(`${Object.keys(report).length} files are pretty :)`)
     process.exit(0)
   }
 }

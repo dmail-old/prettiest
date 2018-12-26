@@ -1219,16 +1219,30 @@ const {
 } = require("prettier");
 
 const generateReport = async ({
-  files
+  localRoot,
+  ressources,
+  afterFormat = () => {}
 }) => {
   const report = {};
-  await Promise.all(files.map(async file => {
+  await Promise.all(ressources.map(async ressource => {
+    const file = `${localRoot}/${ressource}`;
     const [source, options, info] = await Promise.all([getFileContentAsString(file), resolveConfig(file), getFileInfo(file)]);
-    if (info.ignored) return;
-    const pretty = check(source, _objectSpread({}, options, {
+    console.log(ressource, info);
+    const {
+      ignored
+    } = info;
+    const pretty = ignored ? undefined : check(source, _objectSpread({}, options, {
       filepath: file
     }));
-    report[file] = pretty;
+    afterFormat({
+      ressource,
+      pretty,
+      ignored
+    });
+    report[ressource] = {
+      pretty,
+      ignored
+    };
   }));
   return report;
 };
@@ -1242,6 +1256,8 @@ const getFileContentAsString = location => new Promise((resolve, reject) => {
     }
   });
 });
+
+// question mark ?
 
 const localRoot = path.resolve(__dirname, "../"); // because runned from dist
 

@@ -7,7 +7,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var fs = _interopDefault(require('fs'));
 
 // https://git-scm.com/docs/gitignore
-
+// https://github.com/kaelzhang/node-ignore
 const match = ({
   patterns,
   parts,
@@ -15,7 +15,7 @@ const match = ({
   lastSkipRequired,
   lastPatternRequired,
   matchPart,
-  skipUntilStartsMatching = false,
+  skipUntilStartsMatching = false
 }) => {
   let matched;
   let patternIndex = 0;
@@ -30,7 +30,7 @@ const match = ({
   } else if (patterns.length && parts.length === 0) {
     matched = false;
   } else {
-    matched = true;
+    matched = true; // eslint-disable-next-line no-constant-condition
 
     while (true) {
       const pattern = patterns[patternIndex];
@@ -41,12 +41,12 @@ const match = ({
 
       if (isSkipPattern && isLastPart && isLastPattern) {
         matchIndex += part.length;
-        break
+        break;
       }
 
       if (isSkipPattern && isLastPattern && isLastPart === false) {
         matchIndex += part.length;
-        break
+        break;
       }
 
       if (isSkipPattern && isLastPattern === false && isLastPart) {
@@ -58,7 +58,7 @@ const match = ({
           skipPredicate,
           lastSkipRequired,
           lastPatternRequired,
-          matchPart,
+          matchPart
         });
         matched = nextPatternResult.matched;
         patternIndex += nextPatternResult.patternIndex;
@@ -66,27 +66,28 @@ const match = ({
 
         if (matched && patternIndex === patterns.length - 1) {
           matchIndex += nextPatternResult.matchIndex;
-          break
-        }
-        if (matched && partIndex === parts.length - 1) {
-          matchIndex += nextPatternResult.matchIndex;
-          break
-        }
-        if (matched) {
-          matchIndex += nextPatternResult.matchIndex;
-          continue
+          break;
         }
 
-        // we still increase the matchIndex by the length of the part because
+        if (matched && partIndex === parts.length - 1) {
+          matchIndex += nextPatternResult.matchIndex;
+          break;
+        }
+
+        if (matched) {
+          matchIndex += nextPatternResult.matchIndex;
+          continue;
+        } // we still increase the matchIndex by the length of the part because
         // this part has matched even if the full pattern is not satisfied
+
+
         matchIndex += part.length;
-        break
+        break;
       }
 
       if (isSkipPattern && isLastPattern === false && isLastPart === false) {
         // test next pattern on current part
         patternIndex++;
-
         const skipResult = match({
           patterns: patterns.slice(patternIndex),
           parts: parts.slice(partIndex),
@@ -94,72 +95,77 @@ const match = ({
           lastSkipRequired,
           lastPatternRequired,
           matchPart,
-          skipUntilStartsMatching: true,
+          skipUntilStartsMatching: true
         });
-
         matched = skipResult.matched;
         patternIndex += skipResult.patternIndex;
         partIndex += skipResult.partIndex;
         matchIndex += skipResult.matchIndex;
 
         if (matched && patternIndex === patterns.length - 1) {
-          break
+          break;
         }
+
         if (matched && partIndex === parts.length - 1) {
-          break
+          break;
         }
+
         if (matched) {
-          continue
+          continue;
         }
-        break
+
+        break;
       }
 
       const partMatch = matchPart(pattern, part);
       matched = partMatch.matched;
       matchIndex += partMatch.matchIndex;
+
       if (matched === false && skipUntilStartsMatching) {
         matchIndex += part.length;
       }
 
       if (matched && isLastPattern && isLastPart) {
-        break
+        break;
       }
 
       if (matched && isLastPattern && isLastPart === false) {
         if (lastPatternRequired) {
           matched = false;
         }
-        break
+
+        break;
       }
 
       if (matched && isLastPattern === false && isLastPart) {
-        const remainingPatternAreSkip = patterns
-          .slice(patternIndex + 1)
-          .every((pattern) => skipPredicate(pattern));
+        const remainingPatternAreSkip = patterns.slice(patternIndex + 1).every(pattern => skipPredicate(pattern));
 
         if (remainingPatternAreSkip && lastSkipRequired) {
           matched = false;
-          break
+          break;
         }
+
         if (remainingPatternAreSkip === false) {
           matched = false;
-          break
+          break;
         }
-        break
+
+        break;
       }
 
       if (matched && isLastPattern === false && isLastPart === false) {
         patternIndex++;
         partIndex++;
-        continue
+        continue;
       }
 
       if (matched === false && skipUntilStartsMatching && isLastPart === false) {
         partIndex++; // keep searching for that pattern
-        continue
+
+        continue;
       }
 
-      break
+      break;
     }
   }
 
@@ -167,8 +173,8 @@ const match = ({
     matched,
     matchIndex,
     patternIndex,
-    partIndex,
-  }
+    partIndex
+  };
 };
 
 const ressourceMatch = (pattern, ressource) => {
@@ -177,140 +183,26 @@ const ressourceMatch = (pattern, ressource) => {
     parts: ressource.split("/"),
     lastPatternRequired: false,
     lastSkipRequired: true,
-    skipPredicate: (sequencePattern) => sequencePattern === "**",
+    skipPredicate: sequencePattern => sequencePattern === "**",
     matchPart: (sequencePattern, sequencePart) => {
       return match({
         patterns: sequencePattern.split(""),
         parts: sequencePart.split(""),
         lastPatternRequired: true,
         lastSkipRequired: false,
-        skipPredicate: (charPattern) => charPattern === "*",
+        skipPredicate: charPattern => charPattern === "*",
         matchPart: (charPattern, charSource) => {
           const matched = charPattern === charSource;
           return {
             matched,
             patternIndex: 0,
             partIndex: 0,
-            matchIndex: matched ? 1 : 0,
-          }
-        },
-      })
-    },
-  })
-};
-
-const ressourceToMeta = (metaMap, ressource) => {
-  return Object.keys(metaMap).reduce((previousMeta, pattern) => {
-    const { matched } = ressourceMatch(pattern, ressource);
-    return matched ? { ...previousMeta, ...metaMap[pattern] } : previousMeta
-  }, {})
-};
-
-const ressourceCanContainsMetaMatching = (metaMap, ressource, predicate) => {
-  if (typeof metaMap !== "object") {
-    throw new TypeError(
-      `ressourceCanContainsMetaMatching metaMap must be an object, got ${metaMap}`,
-    )
-  }
-  if (typeof ressource !== "string") {
-    throw new TypeError(
-      `ressourceCanContainsMetaMatching ressource must be a string, got ${ressource}`,
-    )
-  }
-  if (typeof predicate !== "function") {
-    throw new TypeError(
-      `ressourceCanContainsMetaMatching predicate must be a function, got ${predicate}`,
-    )
-  }
-
-  const matchIndexForRessource = ressource.split("/").join("").length;
-  const partialMatch = Object.keys(metaMap).some((pattern) => {
-    const { matched, matchIndex } = ressourceMatch(pattern, ressource);
-    return matched === false && matchIndex >= matchIndexForRessource && predicate(metaMap[pattern])
-  });
-  if (partialMatch) {
-    return true
-  }
-
-  // no partial match satisfies predicate, does it work on a full match ?
-  const meta = ressourceToMeta(metaMap, ressource);
-  return Boolean(predicate(meta))
-};
-
-const readDirectory = (dirname) =>
-  new Promise((resolve, reject) => {
-    fs.readdir(dirname, (error, names) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(names);
-      }
-    });
-  });
-
-const readStat = (filename) =>
-  new Promise((resolve, reject) => {
-    fs.stat(filename, (error, stat) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(stat);
-      }
-    });
-  });
-
-const nothingToDo = {};
-
-const forEachRessourceMatching = async (root, metaMap, predicate, callback) => {
-  if (typeof root !== "string") {
-    throw new TypeError(`forEachRessourceMatching metaMap must be a string, got ${root}`)
-  }
-  if (typeof metaMap !== "object") {
-    throw new TypeError(`forEachRessourceMatching ressource must be a object, got ${metaMap}`)
-  }
-  if (typeof predicate !== "function") {
-    throw new TypeError(`forEachRessourceMatching predicate must be a function, got ${predicate}`)
-  }
-  if (typeof callback !== "function") {
-    throw new TypeError(`forEachRessourceMatching callback must be a function, got ${callback}`)
-  }
-
-  const visitFolder = async (folder) => {
-    const folderAbsolute = folder ? `${root}/${folder}` : root;
-
-    const names = await readDirectory(folderAbsolute);
-
-    const results = await Promise.all(
-      names.map(async (name) => {
-        const ressource = folder ? `${folder}/${name}` : name;
-
-        const ressourceAbsolute = `${root}/${ressource}`;
-        const stat = await readStat(ressourceAbsolute);
-
-        if (stat.isDirectory()) {
-          if (!ressourceCanContainsMetaMatching(metaMap, ressource, predicate)) {
-            return [nothingToDo]
-          }
-          return visitFolder(ressource)
+            matchIndex: matched ? 1 : 0
+          };
         }
-
-        const meta = ressourceToMeta(metaMap, ressource);
-        if (!predicate(meta)) {
-          return [nothingToDo]
-        }
-
-        const result = await callback(ressource, meta);
-        return [result]
-      }),
-    );
-
-    return results.reduce((previous, results) => {
-      return [...previous, ...results]
-    }, [])
-  };
-
-  const allResults = await visitFolder();
-  return allResults.filter((result) => result !== nothingToDo)
+      });
+    }
+  });
 };
 
 function _defineProperty(obj, key, value) {
@@ -347,6 +239,122 @@ function _objectSpread(target) {
   return target;
 }
 
+const ressourceToMeta = (metaMap, ressource) => {
+  return Object.keys(metaMap).reduce((previousMeta, pattern) => {
+    const {
+      matched
+    } = ressourceMatch(pattern, ressource);
+    return matched ? _objectSpread({}, previousMeta, metaMap[pattern]) : previousMeta;
+  }, {});
+};
+
+const ressourceCanContainsMetaMatching = (metaMap, ressource, predicate) => {
+  if (typeof metaMap !== "object") {
+    throw new TypeError(`ressourceCanContainsMetaMatching metaMap must be an object, got ${metaMap}`);
+  }
+
+  if (typeof ressource !== "string") {
+    throw new TypeError(`ressourceCanContainsMetaMatching ressource must be a string, got ${ressource}`);
+  }
+
+  if (typeof predicate !== "function") {
+    throw new TypeError(`ressourceCanContainsMetaMatching predicate must be a function, got ${predicate}`);
+  }
+
+  const matchIndexForRessource = ressource.split("/").join("").length;
+  const partialMatch = Object.keys(metaMap).some(pattern => {
+    const {
+      matched,
+      matchIndex
+    } = ressourceMatch(pattern, ressource);
+    return matched === false && matchIndex >= matchIndexForRessource && predicate(metaMap[pattern]);
+  });
+
+  if (partialMatch) {
+    return true;
+  } // no partial match satisfies predicate, does it work on a full match ?
+
+
+  const meta = ressourceToMeta(metaMap, ressource);
+  return Boolean(predicate(meta));
+};
+
+const forEachRessourceMatching = async ({
+  localRoot,
+  metaMap,
+  predicate,
+  callback = ressource => ressource
+}) => {
+  if (typeof localRoot !== "string") {
+    throw new TypeError(`forEachRessourceMatching localRoot must be a string, got ${localRoot}`);
+  }
+
+  if (typeof metaMap !== "object") {
+    throw new TypeError(`forEachRessourceMatching metaMap must be a object, got ${metaMap}`);
+  }
+
+  if (typeof predicate !== "function") {
+    throw new TypeError(`forEachRessourceMatching predicate must be a function, got ${predicate}`);
+  }
+
+  if (typeof callback !== "function") {
+    throw new TypeError(`forEachRessourceMatching callback must be a function, got ${callback}`);
+  }
+
+  const results = [];
+
+  const visitFolder = async folder => {
+    const folderAbsolute = folder ? `${localRoot}/${folder}` : localRoot;
+    const names = await readDirectory(folderAbsolute);
+    await Promise.all(names.map(async name => {
+      const ressource = folder ? `${folder}/${name}` : name;
+      const ressourceAbsolute = `${localRoot}/${ressource}`;
+      const stat = await readStat(ressourceAbsolute);
+
+      if (stat.isDirectory()) {
+        if (!ressourceCanContainsMetaMatching(metaMap, ressource, predicate)) {
+          return null;
+        }
+
+        return visitFolder(ressource);
+      }
+
+      const meta = ressourceToMeta(metaMap, ressource);
+
+      if (!predicate(meta)) {
+        return null;
+      }
+
+      const result = await callback(ressource, meta);
+      results.push(result);
+      return null;
+    }));
+  };
+
+  await visitFolder();
+  return results;
+};
+
+const readDirectory = dirname => new Promise((resolve, reject) => {
+  fs.readdir(dirname, (error, names) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(names);
+    }
+  });
+});
+
+const readStat = filename => new Promise((resolve, reject) => {
+  fs.stat(filename, (error, stat) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(stat);
+    }
+  });
+});
+
 const {
   resolveConfig,
   getFileInfo,
@@ -354,16 +362,30 @@ const {
 } = require("prettier");
 
 const generateReport = async ({
-  files
+  localRoot,
+  ressources,
+  afterFormat = () => {}
 }) => {
   const report = {};
-  await Promise.all(files.map(async file => {
+  await Promise.all(ressources.map(async ressource => {
+    const file = `${localRoot}/${ressource}`;
     const [source, options, info] = await Promise.all([getFileContentAsString(file), resolveConfig(file), getFileInfo(file)]);
-    if (info.ignored) return;
-    const pretty = check(source, _objectSpread({}, options, {
+    console.log(ressource, info);
+    const {
+      ignored
+    } = info;
+    const pretty = ignored ? undefined : check(source, _objectSpread({}, options, {
       filepath: file
     }));
-    report[file] = pretty;
+    afterFormat({
+      ressource,
+      pretty,
+      ignored
+    });
+    report[ressource] = {
+      pretty,
+      ignored
+    };
   }));
   return report;
 };
@@ -378,18 +400,64 @@ const getFileContentAsString = location => new Promise((resolve, reject) => {
   });
 });
 
-const prettiest = async options => {
-  const report = await generateReport(options);
-  const uglyFiles = Object.keys(report).filter(file => {
-    return report[file] === false;
-  });
+const close = "\x1b[0m";
+const green = "\x1b[32m";
+const red = "\x1b[31m";
+const blue = "\x1b[34m";
+const prettyStyle = string => `${green}${string}${close}`;
+const prettyStyleWithIcon = string => prettyStyle(`${prettyIcon} ${string}`);
+const prettyIcon = "\u2714"; // checkmark ✔
 
-  if (uglyFiles.length) {
-    console.warn(`${uglyFiles.length} files are ugly (does not respect prettier.config.js)`);
-    console.warn(uglyFiles.join("\n"));
+const uglyStyle = string => `${red}${string}${close}`;
+const uglyStyleWithIcon = string => uglyStyle(`${uglyIcon} ${string}`);
+const uglyIcon = "\u2613"; // cross ☓
+
+const ignoredStyle = string => `${blue}${string}${close}`;
+const ignoredStyleWithIcon = string => ignoredStyle(`${ignoredIcon} ${string}`);
+const ignoredIcon = "\u003F"; // question mark ?
+
+const prettiest = async ({
+  localRoot,
+  ressources
+}) => {
+  const report = await generateReport({
+    localRoot,
+    ressources,
+    afterFormat: ({
+      ressource,
+      pretty,
+      ignored
+    }) => {
+      if (ignored) {
+        console.log(`${ressource} -> ${ignoredStyleWithIcon("ignored")}`);
+        return;
+      }
+
+      if (pretty) {
+        console.log(`${ressource} -> ${prettyStyleWithIcon("pretty")}`);
+        return;
+      }
+
+      console.log(`${ressource} -> ${uglyStyleWithIcon("ugly")}`);
+    }
+  });
+  const prettyArray = ressources.filter(ressource => {
+    return !report[ressource].ignored && report[ressource].pretty;
+  });
+  const uglyArray = ressources.filter(ressource => {
+    return !report[ressource].ignored && !report[ressource].pretty;
+  });
+  const ignoredArray = ressources.filter(ressource => {
+    return report[ressource].ignored;
+  });
+  console.log(`${ressources.length} files:
+- ${prettyStyle(`${prettyArray.length} pretty`)}
+- ${uglyStyle(`${uglyArray.length} ugly`)}
+- ${ignoredStyle(`${ignoredArray.length} ignored`)}`);
+
+  if (uglyArray.length) {
     process.exit(1);
   } else {
-    console.log(`${Object.keys(report).length} files are pretty :)`);
     process.exit(0);
   }
 };
@@ -398,12 +466,14 @@ const format = async ({
   localRoot,
   metaMap
 }) => {
-  const ressources = await forEachRessourceMatching(localRoot, metaMap, ({
-    prettify
-  }) => prettify, ressource => ressource);
-  const files = ressources.map(ressource => `${localRoot}/${ressource}`);
+  const ressources = await forEachRessourceMatching({
+    localRoot,
+    metaMap,
+    predicate: meta => meta.format === true
+  });
   return prettiest({
-    files
+    localRoot,
+    ressources
   });
 };
 

@@ -1,13 +1,11 @@
 module.exports = {
-  metas: {
-    prettify: {
-      "index.js": true,
-      "src/**/*.js": true,
-      "script/**/*.js": true,
-      "**/*.md": true,
-      "**/*.json": true,
-      "package.json": false,
-      "package-lock.json": false,
-    },
+  format: {
+    "**/*.js": true,
+    "**/*.json": true,
+    "**/*.md": true,
+    node_modules: false, // eslint-disable-line camelcase
+    dist: false,
+    "package.json": false,
+    "package-lock.json": false,
   },
 }

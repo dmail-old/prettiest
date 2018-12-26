@@ -2,20 +2,22 @@ import fs from "fs"
 
 const { resolveConfig, getFileInfo, check } = require("prettier")
 
-export const generateReport = async ({ files }) => {
+export const generateReport = async ({ localRoot, ressources, afterFormat = () => {} }) => {
   const report = {}
 
   await Promise.all(
-    files.map(async (file) => {
+    ressources.map(async (ressource) => {
+      const file = `${localRoot}/${ressource}`
       const [source, options, info] = await Promise.all([
         getFileContentAsString(file),
         resolveConfig(file),
         getFileInfo(file),
       ])
 
-      if (info.ignored) return
-      const pretty = check(source, { ...options, filepath: file })
-      report[file] = pretty
+      const { ignored } = info
+      const pretty = ignored ? undefined : check(source, { ...options, filepath: file })
+      afterFormat({ ressource, pretty, ignored })
+      report[ressource] = { pretty, ignored }
     }),
   )
 
