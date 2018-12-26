@@ -379,7 +379,7 @@ const getFileContentAsString = location => new Promise((resolve, reject) => {
 });
 
 const prettiest = async options => {
-  const report = generateReport(options);
+  const report = await generateReport(options);
   const uglyFiles = Object.keys(report).filter(file => {
     return report[file] === false;
   });
@@ -389,7 +389,7 @@ const prettiest = async options => {
     console.warn(uglyFiles.join("\n"));
     process.exit(1);
   } else {
-    console.log(`${report.length} files are pretty :)`);
+    console.log(`${Object.keys(report).length} files are pretty :)`);
     process.exit(0);
   }
 };
