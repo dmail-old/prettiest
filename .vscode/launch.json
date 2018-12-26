@@ -19,6 +19,26 @@
         "<node_internals>/**/*.js"
       ]
       // "trace": true,
+    },
+    {
+      "name": "Launch from dist",
+      "type": "node",
+      "request": "launch",
+      "protocol": "inspector",
+      "preLaunchTask": "compile", // ensure dist is fresh (compile before running)
+      "args": ["${workspaceRoot}/dist/${relativeFile}"],
+      "autoAttachChildProcesses": true,
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "/*": "${workspaceRoot}/*"
+      },
+      "skipFiles": [
+        // skip node modules
+        "node_modules/**",
+        // skip node internals
+        "<node_internals>/**/*.js"
+      ]
+      // "trace": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@dmail/prettiest",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "licence": "MIT",
   "repository": {
     "type": "git",
@@ -14,32 +14,38 @@
   "files": [
     "index.js",
     "src",
-    "dist",
-    "bin"
+    "dist"
   ],
-  "bin": {
-    "prettiest": "./bin/prettiest.js"
-  },
   "dependencies": {
-    "@dmail/project-structure": "github:dmail/project-structure"
   },
   "devDependencies": {
-    "@dmail/project-prettier-config": "github:dmail/project-prettier-config",
-    "prettier": "1.9.1",
-    "@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+    "@dmail/assert": "1.0.0",
+    "@dmail/project-stucture": "github:dmail/project-structure",
+    "prettier": "1.15.3",
+    "codecov": "2.3.0",
+    "nyc": "11.2.1",
+    "rimraf": "2.6.2",
     "eslint": "5.1.0",
     "eslint-plugin-import": "2.6.0",
-    "babel-eslint": "9.0.0",
     "rollup": "0.66.2",
     "rollup-plugin-node-resolve": "3.4.0",
     "rollup-plugin-babel": "4.0.3",
     "@babel/core": "7.1.0",
     "@babel/plugin-proposal-object-rest-spread": "7.0.0",
-    "@babel/plugin-transform-spread": "7.0.0"
+    "@babel/plugin-transform-spread": "7.0.0",
+    "@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+    "@dmail/project-prettier-config": "github:dmail/project-prettier-config"
   },
   "scripts": {
-    "test": "node ./src/getReport.test.js",
-    "code-compile": "node ./script/compile.js",
-    "compile": "npm run code-compile"
+    "lint": "eslint .",
+    "format": "node ./script/format.js",
+    "compile": "node ./script/compile.js",
+    "clean": "rimraf dist && rimraf coverage && rimraf .nyc_output",
+    "dist": "npm run clean && npm run compile",
+    "test": "npm run dist && node ./dist/index.test.js",
+    "cover": "npm run dist && nyc node ./dist/index.test.js",
+    "coverage-upload": "codecov",
+    "prepublishOnly": "npm run dist",
+    "reinstall": "npm run clean && rimraf node_modules && npm install"
   }
 }
