@@ -370,7 +370,6 @@ const generateReport = async ({
   await Promise.all(ressources.map(async ressource => {
     const file = `${localRoot}/${ressource}`;
     const [source, options, info] = await Promise.all([getFileContentAsString(file), resolveConfig(file), getFileInfo(file)]);
-    console.log(ressource, info);
     const {
       ignored
     } = info;
