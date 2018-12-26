@@ -1,7 +1,7 @@
 import { generateReport } from "./generateReport.js"
 
 export const prettiest = async (options) => {
-  const report = generateReport(options)
+  const report = await generateReport(options)
   const uglyFiles = Object.keys(report).filter((file) => {
     return report[file] === false
   })
