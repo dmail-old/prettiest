@@ -238,7 +238,15 @@ const compareIdentity = (comparison) => {
     type: "identity",
     actual,
     expected,
-    comparer: () => actual === expected,
+    comparer: () => {
+      if (Object.is(expected, -0)) {
+        return Object.is(actual, -0)
+      }
+      if (Object.is(actual, -0)) {
+        return Object.is(expected, -0)
+      }
+      return actual === expected
+    },
   });
 };
 
@@ -1176,8 +1184,6 @@ const createAssertionError = (message) => {
   return error
 };
 
-// https://git-scm.com/docs/gitignore
-
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -1218,7 +1224,7 @@ const {
   check
 } = require("prettier");
 
-const generateReport = async ({
+const checkFormat = async ({
   localRoot,
   ressources,
   afterFormat = () => {}
@@ -1261,14 +1267,18 @@ const getFileContentAsString = location => new Promise((resolve, reject) => {
 const localRoot = path.resolve(__dirname, "../"); // because runned from dist
 
 const test = async () => {
-  const files = [`${localRoot}/index.js`];
-  const report = await generateReport({
-    files
+  const ressources = [`index.js`];
+  const report = await checkFormat({
+    localRoot,
+    ressources
   });
   assert({
     actual: report,
     expected: {
-      [`${localRoot}/index.js`]: true
+      [`index.js`]: {
+        pretty: true,
+        ignored: false
+      }
     }
   });
 };

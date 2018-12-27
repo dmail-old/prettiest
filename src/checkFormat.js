@@ -2,7 +2,7 @@ import fs from "fs"
 
 const { resolveConfig, getFileInfo, check } = require("prettier")
 
-export const generateReport = async ({ localRoot, ressources, afterFormat = () => {} }) => {
+export const checkFormat = async ({ localRoot, ressources, afterFormat = () => {} }) => {
   const report = {}
 
   await Promise.all(

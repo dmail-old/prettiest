@@ -1,4 +1,4 @@
-import { generateReport } from "./generateReport.js"
+import { checkFormat } from "./checkFormat.js"
 import {
   prettyStyle,
   uglyStyle,
@@ -9,7 +9,7 @@ import {
 } from "./style.js"
 
 export const prettiest = async ({ localRoot, ressources }) => {
-  const report = await generateReport({
+  const report = await checkFormat({
     localRoot,
     ressources,
     afterFormat: ({ ressource, pretty, ignored }) => {
