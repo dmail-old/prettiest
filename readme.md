@@ -6,6 +6,8 @@
 
 Run this during continuous integration to ensure your files respects your prettier configuration.
 
-## Install
+## Example
 
-`npm install @dmail/prettiest`
+This is a screenshot of the terminal output after running [./script/format.js](./script/format.js) with node.
+
+![terminal output screenshot](./doc/terminal-output.png)
