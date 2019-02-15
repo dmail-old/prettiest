@@ -47,26 +47,26 @@ const {
 } = require("prettier");
 
 const checkFormat = async ({
-  localRoot,
-  ressources,
+  folder,
+  filenameRelativeArray,
   afterFormat = () => {}
 }) => {
   const report = {};
-  await Promise.all(ressources.map(async ressource => {
-    const file = `${localRoot}/${ressource}`;
-    const [source, options, info] = await Promise.all([getFileContentAsString(file), resolveConfig(file), getFileInfo(file)]);
+  await Promise.all(filenameRelativeArray.map(async filenameRelative => {
+    const filename = `${folder}/${filenameRelative}`;
+    const [source, options, info] = await Promise.all([getFileContentAsString(filename), resolveConfig(filename), getFileInfo(filename)]);
     const {
       ignored
     } = info;
     const pretty = ignored ? undefined : check(source, _objectSpread({}, options, {
-      filepath: file
+      filepath: filename
     }));
     afterFormat({
-      ressource,
+      filenameRelative,
       pretty,
       ignored
     });
-    report[ressource] = {
+    report[filenameRelative] = {
       pretty,
       ignored
     };
@@ -74,8 +74,8 @@ const checkFormat = async ({
   return report;
 };
 
-const getFileContentAsString = location => new Promise((resolve, reject) => {
-  fs.readFile(location, (error, buffer) => {
+const getFileContentAsString = pathname => new Promise((resolve, reject) => {
+  fs.readFile(pathname, (error, buffer) => {
     if (error) {
       reject(error);
     } else {
@@ -101,43 +101,43 @@ const ignoredStyleWithIcon = string => ignoredStyle(`${ignoredIcon} ${string}`);
 const ignoredIcon = "\u003F"; // question mark ?
 
 const prettiest = async ({
-  localRoot,
-  ressources
+  folder,
+  filenameRelativeArray
 }) => {
+  console.log(`
+-------------- format check start -----------------
+`);
   const report = await checkFormat({
-    localRoot,
-    ressources,
+    folder,
+    filenameRelativeArray,
     afterFormat: ({
-      ressource,
+      filenameRelative,
       pretty,
       ignored
     }) => {
       if (ignored) {
-        console.log(`${ressource} -> ${ignoredStyleWithIcon("ignored")}`);
+        console.log(`${filenameRelative} -> ${ignoredStyleWithIcon("ignored")}`);
         return;
       }
 
       if (pretty) {
-        console.log(`${ressource} -> ${prettyStyleWithIcon("pretty")}`);
+        console.log(`${filenameRelative} -> ${prettyStyleWithIcon("pretty")}`);
         return;
       }
 
-      console.log(`${ressource} -> ${uglyStyleWithIcon("ugly")}`);
+      console.log(`${filenameRelative} -> ${uglyStyleWithIcon("ugly")}`);
     }
   });
-  const prettyArray = ressources.filter(ressource => {
-    return !report[ressource].ignored && report[ressource].pretty;
-  });
-  const uglyArray = ressources.filter(ressource => {
-    return !report[ressource].ignored && !report[ressource].pretty;
-  });
-  const ignoredArray = ressources.filter(ressource => {
-    return report[ressource].ignored;
-  });
-  console.log(`${ressources.length} files:
+  const prettyArray = filenameRelativeArray.filter(filenameRelativeArray => !report[filenameRelativeArray].ignored && report[filenameRelativeArray].pretty);
+  const uglyArray = filenameRelativeArray.filter(filenameRelativeArray => !report[filenameRelativeArray].ignored && !report[filenameRelativeArray].pretty);
+  const ignoredArray = filenameRelativeArray.filter(filenameRelativeArray => report[filenameRelativeArray].ignored);
+  console.log(`
+-------------- format check result ----------------
+${filenameRelativeArray.length} files format checked
 - ${prettyStyle(`${prettyArray.length} pretty`)}
 - ${uglyStyle(`${uglyArray.length} ugly`)}
-- ${ignoredStyle(`${ignoredArray.length} ignored`)}`);
+- ${ignoredStyle(`${ignoredArray.length} ignored`)}
+---------------------------------------------------`);
 
   if (uglyArray.length) {
     process.exit(1);

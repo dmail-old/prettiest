@@ -5,8 +5,8 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "compile",
-      "label": "compile",
+      "script": "dist",
+      "label": "dist",
       "presentation": {
         "reveal": "silent",
         "panel": "shared"

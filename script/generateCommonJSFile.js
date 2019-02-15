@@ -2,9 +2,9 @@ const { rollup } = require("rollup")
 const babel = require("rollup-plugin-babel")
 const nodeResolve = require("rollup-plugin-node-resolve")
 
-exports.generateCommonJSFile = async ({ localRoot, destination, source, plugins }) => {
+exports.generateCommonJSFile = async ({ projectFolder, destination, source, plugins }) => {
   const bundle = await rollup({
-    input: `${localRoot}/${source}`,
+    input: `${projectFolder}/${source}`,
     plugins: [
       nodeResolve(),
       babel({
@@ -17,7 +17,7 @@ exports.generateCommonJSFile = async ({ localRoot, destination, source, plugins 
 
   await bundle.write({
     format: "cjs",
-    file: `${localRoot}/${destination}`,
+    file: `${projectFolder}/${destination}`,
     sourcemap: true,
   })
 

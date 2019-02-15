@@ -8,39 +8,46 @@ import {
   ignoredStyleWithIcon,
 } from "./style.js"
 
-export const prettiest = async ({ localRoot, ressources }) => {
+export const prettiest = async ({ folder, filenameRelativeArray }) => {
+  console.log(`
+-------------- format check start -----------------
+`)
+
   const report = await checkFormat({
-    localRoot,
-    ressources,
-    afterFormat: ({ ressource, pretty, ignored }) => {
+    folder,
+    filenameRelativeArray,
+    afterFormat: ({ filenameRelative, pretty, ignored }) => {
       if (ignored) {
-        console.log(`${ressource} -> ${ignoredStyleWithIcon("ignored")}`)
+        console.log(`${filenameRelative} -> ${ignoredStyleWithIcon("ignored")}`)
         return
       }
       if (pretty) {
-        console.log(`${ressource} -> ${prettyStyleWithIcon("pretty")}`)
+        console.log(`${filenameRelative} -> ${prettyStyleWithIcon("pretty")}`)
         return
       }
-      console.log(`${ressource} -> ${uglyStyleWithIcon("ugly")}`)
+      console.log(`${filenameRelative} -> ${uglyStyleWithIcon("ugly")}`)
     },
   })
 
-  const prettyArray = ressources.filter((ressource) => {
-    return !report[ressource].ignored && report[ressource].pretty
-  })
-  const uglyArray = ressources.filter((ressource) => {
-    return !report[ressource].ignored && !report[ressource].pretty
-  })
-  const ignoredArray = ressources.filter((ressource) => {
-    return report[ressource].ignored
-  })
+  const prettyArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) =>
+      !report[filenameRelativeArray].ignored && report[filenameRelativeArray].pretty,
+  )
+  const uglyArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) =>
+      !report[filenameRelativeArray].ignored && !report[filenameRelativeArray].pretty,
+  )
+  const ignoredArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) => report[filenameRelativeArray].ignored,
+  )
 
-  console.log(
-    `${ressources.length} files:
+  console.log(`
+-------------- format check result ----------------
+${filenameRelativeArray.length} files format checked
 - ${prettyStyle(`${prettyArray.length} pretty`)}
 - ${uglyStyle(`${uglyArray.length} ugly`)}
-- ${ignoredStyle(`${ignoredArray.length} ignored`)}`,
-  )
+- ${ignoredStyle(`${ignoredArray.length} ignored`)}
+---------------------------------------------------`)
 
   if (uglyArray.length) {
     process.exit(1)

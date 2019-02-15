@@ -15,9 +15,9 @@ const somePrototypeMatch = (value, predicate) => {
 };
 
 const isComposite = (value) => {
-  if (typeof value === "function") return true
   if (value === null) return false
   if (typeof value === "object") return true
+  if (typeof value === "function") return true
   return false
 };
 
@@ -177,11 +177,8 @@ const defaultComparer = (comparison) => {
   if (!comparison.failed) return true
   comparison.failed = false;
 
-  // on root check prototype first
-  if (comparison.type === "root") {
-    comparePrototype(comparison);
-    if (comparison.failed) return false
-  }
+  comparePrototype(comparison);
+  if (comparison.failed) return false
 
   compareIntegrity(comparison);
   if (comparison.failed) return false
@@ -213,11 +210,6 @@ const defaultComparer = (comparison) => {
   // required otherwise assert({ actual: /a/, expected: /b/ }) would not throw
   if (isRegExp(expected)) {
     compareToStringReturnValue(comparison);
-    if (comparison.failed) return false
-  }
-
-  if (comparison.type !== "root") {
-    comparePrototype(comparison);
     if (comparison.failed) return false
   }
 
@@ -1056,9 +1048,6 @@ const comparisonToRootComparison = (comparison) => {
 
 /* eslint-disable no-use-before-define */
 
-// le prob avec les prototypes c'est que c'est la premiere chose qu'on check
-// du coup la failure d'un proto fait fail les autres mais le plus profond reste
-// le dernier meme si le premier est pas bon
 const prototypeComparisonToErrorMessage = (comparison) => {
   const prototypeComparison = findPrototypeComparison(comparison);
   if (!prototypeComparison) return null
@@ -1089,8 +1078,17 @@ ${prototypeToString(actualPrototype)}`
 
 const findPrototypeComparison = (comparison) => {
   let current = comparison;
+  let prototypeComparison;
   while (current) {
-    if (current && current.type === "prototype") return current
+    if (current && current.type === "prototype") {
+      prototypeComparison = current;
+      current = prototypeComparison.parent;
+      while (current) {
+        if (current.type === "prototype") prototypeComparison = current;
+        current = current.parent;
+      }
+      return prototypeComparison
+    }
     current = current.parent;
   }
   return null
@@ -1225,26 +1223,26 @@ const {
 } = require("prettier");
 
 const checkFormat = async ({
-  localRoot,
-  ressources,
+  folder,
+  filenameRelativeArray,
   afterFormat = () => {}
 }) => {
   const report = {};
-  await Promise.all(ressources.map(async ressource => {
-    const file = `${localRoot}/${ressource}`;
-    const [source, options, info] = await Promise.all([getFileContentAsString(file), resolveConfig(file), getFileInfo(file)]);
+  await Promise.all(filenameRelativeArray.map(async filenameRelative => {
+    const filename = `${folder}/${filenameRelative}`;
+    const [source, options, info] = await Promise.all([getFileContentAsString(filename), resolveConfig(filename), getFileInfo(filename)]);
     const {
       ignored
     } = info;
     const pretty = ignored ? undefined : check(source, _objectSpread({}, options, {
-      filepath: file
+      filepath: filename
     }));
     afterFormat({
-      ressource,
+      filenameRelative,
       pretty,
       ignored
     });
-    report[ressource] = {
+    report[filenameRelative] = {
       pretty,
       ignored
     };
@@ -1252,8 +1250,8 @@ const checkFormat = async ({
   return report;
 };
 
-const getFileContentAsString = location => new Promise((resolve, reject) => {
-  fs.readFile(location, (error, buffer) => {
+const getFileContentAsString = pathname => new Promise((resolve, reject) => {
+  fs.readFile(pathname, (error, buffer) => {
     if (error) {
       reject(error);
     } else {
@@ -1264,13 +1262,14 @@ const getFileContentAsString = location => new Promise((resolve, reject) => {
 
 // question mark ?
 
-const localRoot = path.resolve(__dirname, "../"); // because runned from dist
+const projectFolder = path.resolve(__dirname, "../") // because runned from dist
+;
 
-const test = async () => {
-  const ressources = [`index.js`];
+(async () => {
+  const filenameRelativeArray = [`index.js`];
   const report = await checkFormat({
-    localRoot,
-    ressources
+    folder: projectFolder,
+    filenameRelativeArray
   });
   assert({
     actual: report,
@@ -1281,7 +1280,5 @@ const test = async () => {
       }
     }
   });
-};
-
-test();
+})();
 //# sourceMappingURL=index.test.js.map

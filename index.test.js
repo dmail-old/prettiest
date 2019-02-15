@@ -2,11 +2,11 @@ import path from "path"
 import { assert } from "@dmail/assert"
 import { checkFormat } from "./index.js"
 
-const localRoot = path.resolve(__dirname, "../") // because runned from dist
+const projectFolder = path.resolve(__dirname, "../") // because runned from dist
 
-const test = async () => {
-  const ressources = [`index.js`]
-  const report = await checkFormat({ localRoot, ressources })
+;(async () => {
+  const filenameRelativeArray = [`index.js`]
+  const report = await checkFormat({ folder: projectFolder, filenameRelativeArray })
 
   assert({
     actual: report,
@@ -14,5 +14,4 @@ const test = async () => {
       [`index.js`]: { pretty: true, ignored: false },
     },
   })
-}
-test()
+})()

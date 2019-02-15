@@ -1,8 +1,11 @@
-const { patternGroupToMetaMap, forEachRessourceMatching } = require("@dmail/project-structure")
+const {
+  namedValueDescriptionToMetaDescription,
+  selectAllFileInsideFolder,
+} = require("@dmail/project-structure")
 const { prettiest } = require("../dist/index.js")
-const { localRoot } = require("./util.js")
+const { projectFolder } = require("./util.js")
 
-const metaMap = patternGroupToMetaMap({
+const metaDescription = namedValueDescriptionToMetaDescription({
   format: {
     "**/*.js": true,
     "**/*.json": true,
@@ -14,10 +17,11 @@ const metaMap = patternGroupToMetaMap({
   },
 })
 
-forEachRessourceMatching({
-  localRoot,
-  metaMap,
+selectAllFileInsideFolder({
+  pathname: projectFolder,
+  metaDescription,
   predicate: (meta) => meta.format === true,
-}).then((ressources) => {
-  prettiest({ localRoot, ressources })
+  transformFile: ({ filenameRelative }) => filenameRelative,
+}).then((filenameRelativeArray) => {
+  prettiest({ folder: projectFolder, filenameRelativeArray })
 })
