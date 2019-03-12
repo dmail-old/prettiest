@@ -1,11 +1,19 @@
-import { checkFormat } from "./checkFormat.js"
 import {
-  prettyStyle,
-  uglyStyle,
+  checkFormat,
+  STATUS_ERRORED,
+  STATUS_IGNORED,
+  STATUS_UGLY,
+  STATUS_PRETTY,
+} from "./checkFormat.js"
+import {
+  erroredStyle,
   ignoredStyle,
-  prettyStyleWithIcon,
-  uglyStyleWithIcon,
+  uglyStyle,
+  prettyStyle,
+  erroredStyleWithIcon,
   ignoredStyleWithIcon,
+  uglyStyleWithIcon,
+  prettyStyleWithIcon,
 } from "./style.js"
 
 export const prettiest = async ({ folder, filenameRelativeArray }) => {
@@ -16,40 +24,49 @@ export const prettiest = async ({ folder, filenameRelativeArray }) => {
   const report = await checkFormat({
     folder,
     filenameRelativeArray,
-    afterFormat: ({ filenameRelative, pretty, ignored }) => {
-      if (ignored) {
+    afterFormat: ({ filenameRelative, status, statusDetail }) => {
+      if (status === STATUS_ERRORED) {
+        console.log(`${filenameRelative} -> ${erroredStyleWithIcon("errored")}`)
+        console.log(statusDetail)
+      }
+
+      if (status === STATUS_IGNORED) {
         console.log(`${filenameRelative} -> ${ignoredStyleWithIcon("ignored")}`)
         return
       }
-      if (pretty) {
-        console.log(`${filenameRelative} -> ${prettyStyleWithIcon("pretty")}`)
+
+      if (status === STATUS_UGLY) {
+        console.log(`${filenameRelative} -> ${uglyStyleWithIcon("ugly")}`)
         return
       }
-      console.log(`${filenameRelative} -> ${uglyStyleWithIcon("ugly")}`)
+
+      console.log(`${filenameRelative} -> ${prettyStyleWithIcon("pretty")}`)
     },
   })
 
-  const prettyArray = filenameRelativeArray.filter(
-    (filenameRelativeArray) =>
-      !report[filenameRelativeArray].ignored && report[filenameRelativeArray].pretty,
-  )
-  const uglyArray = filenameRelativeArray.filter(
-    (filenameRelativeArray) =>
-      !report[filenameRelativeArray].ignored && !report[filenameRelativeArray].pretty,
+  const erroredArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) => report[filenameRelativeArray].status === STATUS_ERRORED,
   )
   const ignoredArray = filenameRelativeArray.filter(
-    (filenameRelativeArray) => report[filenameRelativeArray].ignored,
+    (filenameRelativeArray) => report[filenameRelativeArray].status === STATUS_IGNORED,
+  )
+  const uglyArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) => report[filenameRelativeArray].status === STATUS_UGLY,
+  )
+  const prettyArray = filenameRelativeArray.filter(
+    (filenameRelativeArray) => report[filenameRelativeArray].status === STATUS_PRETTY,
   )
 
   console.log(`
 -------------- format check result ----------------
 ${filenameRelativeArray.length} files format checked
-- ${prettyStyle(`${prettyArray.length} pretty`)}
-- ${uglyStyle(`${uglyArray.length} ugly`)}
+- ${erroredStyle(`${erroredArray.length} errored`)}
 - ${ignoredStyle(`${ignoredArray.length} ignored`)}
+- ${uglyStyle(`${uglyArray.length} ugly`)}
+- ${prettyStyle(`${prettyArray.length} pretty`)}
 ---------------------------------------------------`)
 
-  if (uglyArray.length) {
+  if (uglyArray.length || erroredArray.length) {
     process.exit(1)
   } else {
     process.exit(0)
