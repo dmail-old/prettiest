@@ -1222,6 +1222,10 @@ const {
   check
 } = require("prettier");
 
+const STATUS_IGNORED = "ignored";
+const STATUS_PRETTY = "pretty";
+const STATUS_UGLY = "ugly";
+const STATUS_ERRORED = "errored";
 const checkFormat = async ({
   folder,
   filenameRelativeArray,
@@ -1230,21 +1234,36 @@ const checkFormat = async ({
   const report = {};
   await Promise.all(filenameRelativeArray.map(async filenameRelative => {
     const filename = `${folder}/${filenameRelative}`;
-    const [source, options, info] = await Promise.all([getFileContentAsString(filename), resolveConfig(filename), getFileInfo(filename)]);
-    const {
-      ignored
-    } = info;
-    const pretty = ignored ? undefined : check(source, _objectSpread({}, options, {
-      filepath: filename
-    }));
+    let status;
+    let statusDetail;
+
+    try {
+      const [source, options, info] = await Promise.all([getFileContentAsString(filename), resolveConfig(filename), getFileInfo(filename)]);
+      const {
+        ignored
+      } = info;
+
+      if (ignored) {
+        status = STATUS_IGNORED;
+      } else {
+        const pretty = check(source, _objectSpread({}, options, {
+          filepath: filename
+        }));
+        status = pretty ? STATUS_PRETTY : STATUS_UGLY;
+      }
+    } catch (e) {
+      status = STATUS_ERRORED;
+      statusDetail = e;
+    }
+
     afterFormat({
       filenameRelative,
-      pretty,
-      ignored
+      status,
+      statusDetail
     });
     report[filenameRelative] = {
-      pretty,
-      ignored
+      status,
+      statusDetail
     };
   }));
   return report;
@@ -1260,7 +1279,7 @@ const getFileContentAsString = pathname => new Promise((resolve, reject) => {
   });
 });
 
-// question mark ?
+// checkmark ✔
 
 const projectFolder = path.resolve(__dirname, "../") // because runned from dist
 ;
