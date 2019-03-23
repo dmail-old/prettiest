@@ -170,7 +170,7 @@ ${filenameRelativeArray.length} files format checked
 - ${prettyStyle(`${prettyArray.length} pretty`)}
 ---------------------------------------------------`);
 
-  if (uglyArray.length) {
+  if (uglyArray.length || erroredArray.length) {
     process.exit(1);
   } else {
     process.exit(0);

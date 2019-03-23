@@ -864,7 +864,7 @@ const propertyToAccessorString = (property) => {
 
 /* eslint-disable no-use-before-define */
 
-const comparisonToSubject = (comparison, name = "value") => {
+const comparisonToPath = (comparison, name = "value") => {
   const comparisonPath = [];
 
   let ancestor = comparison.parent;
@@ -876,7 +876,7 @@ const comparisonToSubject = (comparison, name = "value") => {
     comparisonPath.push(comparison);
   }
 
-  const subject = comparisonPath.reduce((previous, { type, data }) => {
+  const path$$1 = comparisonPath.reduce((previous, { type, data }) => {
     if (type === "property-enumerable") {
       return `${previous}${propertyToAccessorString(data)}[[Enumerable]]`
     }
@@ -925,7 +925,7 @@ const comparisonToSubject = (comparison, name = "value") => {
     return `${previous} type:${type}, data:${data}`
   }, name);
 
-  return subject
+  return path$$1
 };
 
 /* eslint-disable no-use-before-define */
@@ -993,13 +993,20 @@ const valueToString = (value) => {
 /* eslint-disable no-use-before-define */
 
 const defaultComparisonToErrorMessage = (comparison) => {
-  const subject = comparisonToSubject(comparison, "actual");
-  return `unexpected value at ${subject}
---- expected value ---
-${valueToString(comparison.expected)}
---- actual value ---
-${valueToString(comparison.actual)}`
+  const path$$1 = comparisonToPath(comparison, "actual");
+  const expectedValue = valueToString(comparison.expected);
+  const actualValue = valueToString(comparison.actual);
+
+  return createUnequalValuesMessage({ path: path$$1, expectedValue, actualValue })
 };
+
+const createUnequalValuesMessage = ({ path: path$$1, expectedValue, actualValue }) => `unequal values.
+--- path ---
+${path$$1}
+--- expected value ---
+${expectedValue}
+--- actual value ---
+${actualValue}`;
 
 /* eslint-disable no-use-before-define */
 
@@ -1008,31 +1015,67 @@ const referenceComparisonToErrorMessage = (comparison) => {
 
   const { actual, expected } = comparison;
   const isMissing = expected && !actual;
-  const isUnexpected = !expected && actual;
-  const subject = comparisonToSubject(comparison, "actual");
+  const isExtra = !expected && actual;
+  const path$$1 = comparisonToPath(comparison, "actual");
+
+  if (isExtra) {
+    return createUnexpectedReferenceMessage({
+      path: path$$1,
+      expectedValue: valueToString(comparison.parent.expected),
+      unexpectedReferencePath: comparisonToPath(actual, "actual"),
+    })
+  }
 
   if (isMissing) {
-    return `missing reference at ${subject}
---- expected reference ---
-${comparisonToSubject(expected, "expected")}
---- actual value ---
-${valueToString(comparison.parent.actual)}`
+    return createMissingReferenceMessage({
+      path: path$$1,
+      expectedReferencePath: comparisonToPath(expected, "expected"),
+      actualValue: valueToString(comparison.parent.actual),
+    })
   }
 
-  if (isUnexpected) {
-    return `extra reference at ${subject}
---- expected value ---
-${valueToString(comparison.parent.expected)}
---- extra reference ---
-${comparisonToSubject(actual, "actual")}`
-  }
-
-  return `unexpected reference at ${subject}
---- expected reference ---
-${comparisonToSubject(expected, "expected")}
---- actual reference ---
-${comparisonToSubject(actual, "actual")}`
+  return createUnequalRefencesMessage({
+    path: path$$1,
+    expectedReferencePath: comparisonToPath(expected, "expected"),
+    actualReferencePath: comparisonToPath(actual, "actual"),
+  })
 };
+
+const createUnexpectedReferenceMessage = ({
+  path: path$$1,
+  expectedValue,
+  unexpectedReferencePath,
+}) => `unexpected reference.
+--- path ---
+${path$$1}
+--- expected value ---
+${expectedValue}
+--- unexpected reference path ---
+${unexpectedReferencePath}`;
+
+const createMissingReferenceMessage = ({
+  path: path$$1,
+  expectedReferencePath,
+  actualValue,
+}) => `missing reference.
+--- path ---
+${path$$1}
+--- expected reference path ---
+${expectedReferencePath}
+--- actual value ---
+${actualValue}`;
+
+const createUnequalRefencesMessage = ({
+  path: path$$1,
+  expectedReferencePath,
+  actualReferencePath,
+}) => `unequal references.
+--- path ---
+${path$$1}
+--- expected reference path ---
+${expectedReferencePath}
+--- actual reference path ---
+${actualReferencePath}`;
 
 const comparisonToRootComparison = (comparison) => {
   let current = comparison;
@@ -1053,7 +1096,7 @@ const prototypeComparisonToErrorMessage = (comparison) => {
   if (!prototypeComparison) return null
 
   const rootComparison = comparisonToRootComparison(comparison);
-  const subject = comparisonToSubject(prototypeComparison, "actual");
+  const path$$1 = comparisonToPath(prototypeComparison, "actual");
   const prototypeToString = (prototype) => {
     const wellKnown = valueToWellKnown(prototype);
     if (wellKnown) return wellKnown
@@ -1069,11 +1112,11 @@ const prototypeComparisonToErrorMessage = (comparison) => {
   const expectedPrototype = prototypeComparison.expected;
   const actualPrototype = prototypeComparison.actual;
 
-  return `unexpected value at ${subject}
---- expected value ---
-${prototypeToString(expectedPrototype)}
---- actual value ---
-${prototypeToString(actualPrototype)}`
+  return createUnequalPrototypesMessage({
+    path: path$$1,
+    expectedPrototype: prototypeToString(expectedPrototype),
+    actualPrototype: prototypeToString(actualPrototype),
+  })
 };
 
 const findPrototypeComparison = (comparison) => {
@@ -1094,33 +1137,119 @@ const findPrototypeComparison = (comparison) => {
   return null
 };
 
+const createUnequalPrototypesMessage = ({
+  path: path$$1,
+  expectedPrototype,
+  actualPrototype,
+}) => `unequal prototypes.
+--- path ---
+${path$$1}
+--- expected prototype ---
+${expectedPrototype}
+--- actual prototype ---
+${actualPrototype}`;
+
 /* eslint-disable no-use-before-define */
 
 const propertiesComparisonToErrorMessage = (comparison) => {
   if (comparison.type !== "properties") return undefined
 
-  const subject = comparisonToSubject(comparison, "actual");
+  const path$$1 = comparisonToPath(comparison, "actual");
+  const extra = comparison.actual.extra;
+  const missing = comparison.actual.missing;
 
-  return `unexpected properties at ${subject}
---- missing properties ---
-${unevalPrimitive(comparison.actual.missing)}
---- extra properties ---
-${unevalPrimitive(comparison.actual.extra)}`
+  if (extra && !missing) {
+    return createUnexpectedPropertiesMessage({
+      path: path$$1,
+      unexpectedProperties: unevalPrimitive(extra),
+    })
+  }
+
+  if (missing && !extra) {
+    return createMissingPropertiesMessage({ path: path$$1, missingProperties: unevalPrimitive(missing) })
+  }
+
+  return createUnexpectedAndMissingPropertiesMessage({
+    path: path$$1,
+    unexpectedProperties: unevalPrimitive(extra),
+    missingProperties: unevalPrimitive(missing),
+  })
 };
+
+const createUnexpectedPropertiesMessage = ({
+  path: path$$1,
+  unexpectedProperties,
+}) => `unexpected properties.
+--- path ---
+${path$$1}
+--- unexpected properties ---
+${unexpectedProperties}`;
+
+const createMissingPropertiesMessage = ({ path: path$$1, missingProperties }) => `missing properties.
+--- path ---
+${path$$1}
+--- missing properties ---
+${missingProperties}`;
+
+const createUnexpectedAndMissingPropertiesMessage = ({
+  path: path$$1,
+  unexpectedProperties,
+  missingProperties,
+}) => `unexpected and missing properties.
+--- path ---
+${path$$1}
+--- unexpected properties ---
+${unexpectedProperties}
+--- missing properties ---
+${missingProperties}`;
 
 /* eslint-disable no-use-before-define */
 
 const symbolsComparisonToErrorMessage = (comparison) => {
   if (comparison.type !== "symbols") return undefined
 
-  const subject = comparisonToSubject(comparison, "actual");
+  const path$$1 = comparisonToPath(comparison, "actual");
+  const extra = comparison.actual.extra;
+  const missing = comparison.actual.missing;
 
-  return `unexpected symbols at ${subject}
---- missing symbols ---
-${unevalPrimitive(comparison.actual.missing)}
---- extra symbols ---
-${unevalPrimitive(comparison.actual.extra)}`
+  if (extra && !missing) {
+    return createUnexpectedSymbolsMessage({ path: path$$1, unexpectedSymbols: unevalPrimitive(extra) })
+  }
+
+  if (missing && !extra) {
+    return createMissingSymbolsMessage({ path: path$$1, missingSymbols: unevalPrimitive(missing) })
+  }
+
+  return createUnexpectedAndMissingSymbolsMessage({
+    path: path$$1,
+    unexpectedSymbols: unevalPrimitive(extra),
+    missingSymbols: unevalPrimitive(missing),
+  })
 };
+
+const createUnexpectedSymbolsMessage = ({ path: path$$1, unexpectedSymbols }) => `unexpected symbols.
+--- path ---
+${path$$1}
+--- unexpected symbols ---
+${unexpectedSymbols}`;
+
+const createMissingSymbolsMessage = ({ path: path$$1, missingSymbols }) => `missing symbols.
+--- path ---
+${path$$1}
+--- missing symbols ---
+${missingSymbols}`;
+
+const createUnexpectedAndMissingSymbolsMessage = ({
+  path: path$$1,
+  unexpectedSymbols,
+  missingSymbols,
+}) => `unexpected and missing symbols.
+--- path ---
+${path$$1}
+--- unexpected symbols ---
+${unexpectedSymbols}
+--- missing symbols ---
+${missingSymbols}`;
 
 /* eslint-disable no-use-before-define */
 
@@ -1294,8 +1423,8 @@ const projectFolder = path.resolve(__dirname, "../") // because runned from dist
     actual: report,
     expected: {
       [`index.js`]: {
-        pretty: true,
-        ignored: false
+        status: "pretty",
+        statusDetail: undefined
       }
     }
   });

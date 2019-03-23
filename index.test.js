@@ -11,7 +11,7 @@ const projectFolder = path.resolve(__dirname, "../") // because runned from dist
   assert({
     actual: report,
     expected: {
-      [`index.js`]: { pretty: true, ignored: false },
+      [`index.js`]: { status: "pretty", statusDetail: undefined },
     },
   })
 })()
