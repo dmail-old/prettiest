@@ -2,11 +2,12 @@ const {
   namedValueDescriptionToMetaDescription,
   selectAllFileInsideFolder,
 } = require("@dmail/project-structure")
+// eslint-disable-next-line import/no-unresolved
 const { prettiest } = require("../dist/index.js")
 const { projectFolder } = require("./util.js")
 
 const metaDescription = namedValueDescriptionToMetaDescription({
-  format: {
+  formattable: {
     "/**/*.js": true,
     "/**/*.json": true,
     "/**/*.md": true,
@@ -20,7 +21,7 @@ const metaDescription = namedValueDescriptionToMetaDescription({
 selectAllFileInsideFolder({
   pathname: projectFolder,
   metaDescription,
-  predicate: (meta) => meta.format === true,
+  predicate: (meta) => meta.formattable === true,
   transformFile: ({ filenameRelative }) => filenameRelative,
 }).then((filenameRelativeArray) => {
   prettiest({ folder: projectFolder, filenameRelativeArray })
