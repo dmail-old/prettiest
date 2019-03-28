@@ -1,6 +1,6 @@
 import fs from "fs"
 
-const { resolveConfig, getFileInfo, check } = require("prettier")
+const { resolveConfig, getFileInfo, check } = import.meta.require("prettier")
 
 export const STATUS_IGNORED = "ignored"
 export const STATUS_PRETTY = "pretty"
